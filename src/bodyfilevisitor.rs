@@ -56,7 +56,9 @@ impl EvtxStructureVisitor for BodyfileVisitor {
     // called upon element content
     fn visit_characters(&mut self, value: &str) -> SerializationResult<()> {
         if let Some(ref name) = self.event_data_name {
-            self.event_data.insert(name.to_owned(), str::replace(value, "|", "§"));
+            if ! value.is_empty() {
+                self.event_data.insert(name.to_owned(), str::replace(value, "|", "§"));
+            }
             self.event_data_name = None;
         } else
         if let Some(current_tag) = self.stack.last() {
@@ -91,7 +93,10 @@ impl EvtxStructureVisitor for BodyfileVisitor {
 
             } else if parent == "EventData" {
                 if name == "Data" {
-                    self.event_data_name = Some(attr_find(attributes, "Name")?.to_owned());
+                    self.event_data_name = match attr_find(attributes, "Name") {
+                        Ok(n) => Some(n.to_owned()),
+                        Err(_) => Some(String::from("binary"))
+                    };
                 }
             }
         }
