@@ -1,4 +1,4 @@
-use evtx::err::SerializationResult;
+use evtx::err::{SerializationResult, SerializationError};
 use chrono::{DateTime, NaiveDateTime, Utc};
 use std::collections::HashMap;
 use serde_json::json;
@@ -78,29 +78,20 @@ impl EvtxStructureVisitor for BodyfileVisitor {
         I: Iterator<Item = (&'b str, &'b str)> + 'b,
     {
         if let Some(parent) = self.stack.last() {
+
             if parent == "System" {
                 if name == "Provider" {
-                    for (k,v) in attributes {
-                        if k == "Name" {
-                            self.provider_name = v.to_owned();
-                        }
-                    }
+                    self.provider_name = attr_find(attributes, "Name")?.to_owned();
                 } else if name == "TimeCreated" {
-                    for (k,v) in attributes {
-                        if k == "SystemTime" {
-                            let ndt = NaiveDateTime::parse_from_str(v, "%Y-%m-%d %H:%M:%S%.f %Z").unwrap();
-                            let dt = DateTime::<Utc>::from_utc(ndt, Utc);
-                            self.timestamp = dt.timestamp();
-                        }
-                    }
+                    let v = attr_find(attributes, "SystemTime")?;
+                    let ndt = NaiveDateTime::parse_from_str(v, "%Y-%m-%d %H:%M:%S%.f %Z").unwrap();
+                    let dt = DateTime::<Utc>::from_utc(ndt, Utc);
+                    self.timestamp = dt.timestamp();
                 }
+
             } else if parent == "EventData" {
                 if name == "Data" {
-                    for (k,v) in attributes {
-                        if k == "Name" {
-                            self.event_data_name = Some(v.to_owned());
-                        }
-                    }
+                    self.event_data_name = Some(attr_find(attributes, "Name")?.to_owned());
                 }
             }
         }
@@ -115,4 +106,15 @@ impl EvtxStructureVisitor for BodyfileVisitor {
         self.event_data_name = None;
         Ok(())
     }
+}
+
+fn attr_find<'a, 'b, I>(attributes: I, key: &str) -> SerializationResult<&'b str> where I:Iterator<Item = (&'b str, &'b str)> + 'b {
+    for (k, v) in attributes {
+        if k == key {
+            return Ok(v);
+        }
+    }
+    Err(SerializationError::ExternalError {
+        cause: format!("no value found for key '{}'", key)
+    })
 }
