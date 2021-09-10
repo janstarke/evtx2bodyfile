@@ -12,6 +12,10 @@ evtx = { git = "https://github.com/janstarke/evtx" }
 anyhow = "1.0.40"
 clap = "2.33"
 log = "0.4"
-simple_logger = "1.11.0"
 serde_json = "1.0"
 chrono = "0.4"
+
+[dependencies.simple_logger]
+version = "1.11"
+default-features = false
+features = ["stderr", "timestamps", "colors"]

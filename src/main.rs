@@ -2,6 +2,7 @@ use clap::{App, Arg};
 use evtx::EvtxParser;
 use simple_logger::SimpleLogger;
 use std::path::PathBuf;
+use log;
 
 mod bodyfileline;
 mod bodyfilevisitor;
@@ -31,14 +32,18 @@ fn main() {
 
     for file in files {
         let fp = PathBuf::from(file);
-        let mut parser = EvtxParser::from_path(fp).unwrap();
-
-        for record in parser.records_to_visitor(|| BodyfileVisitor::new()) {
-            match record {
-                Ok(r) => println!("{}", r),
-                Err(e) => log::error!("{}", e),
+        match EvtxParser::from_path(fp) {
+            Ok(mut parser) => {
+                for record in parser.records_to_visitor(|| BodyfileVisitor::new()) {
+                    match record {
+                        Ok(r) => println!("{}", r),
+                        Err(e) => log::error!("{}", e),
+                    }
+                }
+            }
+            Err(error) => {
+                log::error!("Error while parsing {}: {}", file, error);
             }
         }
     }
 }
-
