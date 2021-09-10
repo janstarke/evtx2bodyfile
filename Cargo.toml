@@ -3,6 +3,7 @@ name = "evtx2bodyfile"
 version = "0.1.0"
 authors = ["Jan Starke <jan.starke@outofbed.org>"]
 edition = "2018"
+license = "GPLv3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
