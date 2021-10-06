@@ -11,7 +11,8 @@ pub struct BodyfileVisitor {
     provider_name: String,
     timestamp: i64,
     event_data: HashMap<String, String>,
-    event_data_name: Option<String>
+    event_data_name: Option<String>,
+    activity_id: Option<String>
 }
 
 impl BodyfileVisitor {
@@ -23,6 +24,7 @@ impl BodyfileVisitor {
             timestamp: 0,
             event_data: HashMap::new(),
             event_data_name: None,
+            activity_id: None,
         }
     }
 }
@@ -34,11 +36,18 @@ impl EvtxStructureVisitor for BodyfileVisitor {
         _event_record_id: u64,
         _timestamp: chrono::DateTime<chrono::Utc>,
     ) -> Self::VisitorResult {
-        let name = format!("{}({}): {}",
-            self.provider_name,
-            self.event_id,
-            json!(self.event_data)
-        );
+        let name = 
+        match self.activity_id {
+            Some(ref activity_id) => format!("{}({}): Data={} ActivityId={}",
+                                    self.provider_name,
+                                    self.event_id,
+                                    json!(self.event_data),
+                                    activity_id),
+            None                  => format!("{}({}): Data={} ActivityId=None",
+                                    self.provider_name,
+                                    self.event_id,
+                                    json!(self.event_data)),
+        };
 
         BodyfileLine::new(name, self.timestamp)
     }
@@ -89,6 +98,11 @@ impl EvtxStructureVisitor for BodyfileVisitor {
                     let ndt = NaiveDateTime::parse_from_str(v, "%Y-%m-%d %H:%M:%S%.f %Z").unwrap();
                     let dt = DateTime::<Utc>::from_utc(ndt, Utc);
                     self.timestamp = dt.timestamp();
+                } else if name == "Correlation" {
+                    // this attribute might be empty, which would be OK
+                    if let Ok(activity_id) = attr_find(attributes, "ActivityID") {
+                        self.activity_id = Some(activity_id.to_owned());
+                    }
                 }
 
             } else if parent == "EventData" {
