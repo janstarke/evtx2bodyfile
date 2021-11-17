@@ -1,9 +1,9 @@
 [package]
 name = "evtx2bodyfile"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Jan Starke <jan.starke@outofbed.org>"]
 edition = "2018"
-license = "GPLv3"
+license = "GPL-3.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,6 +15,7 @@ clap = "2.33"
 log = "0.4"
 serde_json = "1.0"
 chrono = "0.4"
+bodyfile = "0.1"
 
 [dependencies.simple_logger]
 version = "1.11"

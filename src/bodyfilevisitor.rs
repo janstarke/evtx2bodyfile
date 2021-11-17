@@ -3,7 +3,7 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use std::collections::HashMap;
 use serde_json::json;
 use evtx::EvtxStructureVisitor;
-use crate::BodyfileLine;
+use bodyfile::Bodyfile3Line;
 
 pub struct BodyfileVisitor {
     stack: Vec<String>,
@@ -29,7 +29,7 @@ impl BodyfileVisitor {
     }
 }
 impl EvtxStructureVisitor for BodyfileVisitor {
-    type VisitorResult = BodyfileLine;
+    type VisitorResult = Bodyfile3Line;
 
     fn get_result(
         &self,
@@ -49,7 +49,7 @@ impl EvtxStructureVisitor for BodyfileVisitor {
                                     json!(self.event_data)),
         };
 
-        BodyfileLine::new(name, self.timestamp)
+        Bodyfile3Line::new().with_owned_name(name).with_crtime(self.timestamp)
     }
 
     /// called when a new record starts

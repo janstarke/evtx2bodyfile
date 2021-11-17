@@ -4,9 +4,7 @@ use simple_logger::SimpleLogger;
 use std::path::PathBuf;
 use log;
 
-mod bodyfileline;
 mod bodyfilevisitor;
-use bodyfileline::BodyfileLine;
 use bodyfilevisitor::BodyfileVisitor;
 
 fn main() {
