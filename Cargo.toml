@@ -1,6 +1,6 @@
 [package]
 name = "evtx2bodyfile"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Jan Starke <jan.starke@outofbed.org>"]
 edition = "2018"
 license = "GPL-3.0"
@@ -20,4 +20,4 @@ bodyfile = "0.1"
 [dependencies.simple_logger]
 version = "1.11"
 default-features = false
-features = ["stderr", "timestamps", "colors"]
+features = ["stderr", "colors"]
