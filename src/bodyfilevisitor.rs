@@ -88,6 +88,7 @@ impl EvtxStructureVisitor for BodyfileVisitor {
         'a: 'b,
         I: Iterator<Item = (&'b str, &'b str)> + 'b,
     {
+        let date_format = "%Y-%m-%d %H:%M:%S%.f %Z";
         if let Some(parent) = self.stack.last() {
 
             if parent == "System" {
@@ -95,9 +96,17 @@ impl EvtxStructureVisitor for BodyfileVisitor {
                     self.provider_name = attr_find(attributes, "Name")?.to_owned();
                 } else if name == "TimeCreated" {
                     let v = attr_find(attributes, "SystemTime")?;
-                    let ndt = NaiveDateTime::parse_from_str(v, "%Y-%m-%d %H:%M:%S%.f %Z").unwrap();
+                    let ndt = match NaiveDateTime::parse_from_str(v, date_format) {
+                        Ok(ndt) => ndt,
+                        Err(why) => {
+                            log::error!("error while parsing '{}': {}", v, why);
+                            std::process::exit(-1);
+                        }
+                    };
                     let dt = DateTime::<Utc>::from_utc(ndt, Utc);
                     self.timestamp = dt.timestamp();
+
+                    assert_eq!(dt.format(date_format).to_string(), v);
                 } else if name == "Correlation" {
                     // this attribute might be empty, which would be OK
                     if let Ok(activity_id) = attr_find(attributes, "ActivityID") {
