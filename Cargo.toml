@@ -2,14 +2,14 @@
 name = "evtx2bodyfile"
 version = "0.1.4"
 authors = ["Jan Starke <jan.starke@outofbed.org>"]
-edition = "2018"
+edition = "2021"
 license = "GPL-3.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 #evtx = "0.7.2"
-evtx = { git = "https://github.com/janstarke/evtx" }
+evtx = { git = "https://github.com/janstarke/evtx", branch="feature/visitor" }
 anyhow = "1.0.40"
 clap = "2.33"
 log = "0.4"
