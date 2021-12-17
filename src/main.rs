@@ -27,14 +27,8 @@ fn main() {
                 record.args()
             )
         })
-        .filter(None, log::LevelFilter::Trace)
+        .filter(None, log_level)
         .init();
-
-    SimpleLogger::new()
-        .with_level(log_level)
-        .with_colors(true)
-        .init()
-        .unwrap();
         
     let app = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
