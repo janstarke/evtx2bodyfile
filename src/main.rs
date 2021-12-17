@@ -1,6 +1,5 @@
 use clap::{App, Arg};
 use evtx::EvtxParser;
-use simple_logger::SimpleLogger;
 use std::path::PathBuf;
 
 use log;
