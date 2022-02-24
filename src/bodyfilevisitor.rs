@@ -9,6 +9,7 @@ pub struct BodyfileVisitor {
     stack: Vec<String>,
     event_id: String,
     provider_name: String,
+	channel_name: String,
     timestamp: i64,
     event_data: HashMap<String, String>,
     event_data_name: Option<String>,
@@ -21,6 +22,7 @@ impl BodyfileVisitor {
             stack: Vec::new(),
             event_id: "".to_owned(),
             provider_name: "".to_owned(),
+			channel_name: "".to_owned(),
             timestamp: 0,
             event_data: HashMap::new(),
             event_data_name: None,
@@ -38,12 +40,14 @@ impl EvtxStructureVisitor for BodyfileVisitor {
     ) -> Self::VisitorResult {
         let name = 
         match self.activity_id {
-            Some(ref activity_id) => format!("{}({}): Data={} ActivityId={}",
+            Some(ref activity_id) => format!("Channel={}, Provider={}(EventID={}): Data={} ActivityId={}",
+									self.channel_name,
                                     self.provider_name,
                                     self.event_id,
                                     json!(self.event_data),
                                     activity_id),
-            None                  => format!("{}({}): Data={} ActivityId=None",
+            None                  => format!("Channel={}, Provider={}(EventID={}): Data={} ActivityId=None",
+									self.channel_name,
                                     self.provider_name,
                                     self.event_id,
                                     json!(self.event_data)),
@@ -73,6 +77,9 @@ impl EvtxStructureVisitor for BodyfileVisitor {
         if let Some(current_tag) = self.stack.last() {
             if current_tag == "EventID" {
                 self.event_id = value.to_owned();
+            } else
+			if current_tag == "Channel" {
+                self.channel_name = value.to_owned();
             }
         }
         Ok(())
