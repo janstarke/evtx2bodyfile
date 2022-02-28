@@ -5,6 +5,7 @@ use serde_json::{Value, json};
 use std::{path::PathBuf, collections::HashMap};
 use bodyfile::Bodyfile3Line;
 use anyhow::{Result, anyhow};
+use indicatif::{ProgressBar, ProgressStyle};
 
 use log;
 use std::io::Write;
@@ -45,11 +46,30 @@ fn main() {
 
     let matches = app.get_matches();
     let files: Vec<_> = matches.values_of("EVTXFILES").unwrap().collect();
-
+    
     for file in files {
         let fp = PathBuf::from(file);
-        match EvtxParser::from_path(fp) {
+        let count = match EvtxParser::from_path(&fp) {
+            Err(why) => {
+                log::error!("Error while parsing {}: {}", file, why);
+                continue;
+            }
             Ok(mut parser) => {
+                parser.serialized_records(|r| r.and(Ok(()))).count()
+            }
+        };
+        let filename = fp.file_name().unwrap().to_str().unwrap().to_owned();
+        match EvtxParser::from_path(&fp) {
+            Ok(mut parser) => {
+                let bar = ProgressBar::new(count as u64);
+                bar.set_draw_delta(100);
+                bar.set_message(filename);
+
+                let progress_style = ProgressStyle::default_bar()
+                        .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>9}/{len:9}({percent}%) {msg}")
+                        .progress_chars("##-");
+                bar.set_style(progress_style);
+
                 for record_r in parser.records_json_value() {
                     match record_r {
                         Err(why) => log::warn!("{}", why),
@@ -58,7 +78,9 @@ fn main() {
                             Ok(line) => println!("{}", line),
                         }
                     }
+                    bar.inc(1);
                 }
+                bar.finish_and_clear();
             }
             Err(error) => {
                 log::error!("Error while parsing {}: {}", file, error);

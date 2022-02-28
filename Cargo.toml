@@ -9,7 +9,6 @@ license = "GPL-3.0"
 
 [dependencies]
 evtx = "0.7.2"
-#evtx = { git = "https://github.com/janstarke/evtx", branch="feature/visitor" }
 anyhow = "1.0.40"
 clap = "2.33"
 log = "0.4"
@@ -18,6 +17,7 @@ serde_json = "1.0"
 chrono = "0.4"
 bodyfile = "0.1"
 env_logger = "0.9"
+indicatif = "0.16.2"
 
 [dependencies.simple_logger]
 version = "1.11"
