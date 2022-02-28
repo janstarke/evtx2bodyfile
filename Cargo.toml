@@ -4,6 +4,7 @@ version = "0.2.0"
 authors = ["Jan Starke <jan.starke@outofbed.org>"]
 edition = "2021"
 license = "GPL-3.0"
+description = "Parses a lot of evtx files and prints a bodyfile"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
