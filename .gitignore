@@ -11,3 +11,6 @@ Cargo.lock
 
 *.bodyfile
 *.csv
+*.evtx
+*.xml
+*.log

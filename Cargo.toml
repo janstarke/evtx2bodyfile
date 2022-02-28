@@ -1,6 +1,6 @@
 [package]
 name = "evtx2bodyfile"
-version = "0.1.5"
+version = "0.2.0"
 authors = ["Jan Starke <jan.starke@outofbed.org>"]
 edition = "2021"
 license = "GPL-3.0"
@@ -8,11 +8,12 @@ license = "GPL-3.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#evtx = "0.7.2"
-evtx = { git = "https://github.com/janstarke/evtx", branch="feature/visitor" }
+evtx = "0.7.2"
+#evtx = { git = "https://github.com/janstarke/evtx", branch="feature/visitor" }
 anyhow = "1.0.40"
 clap = "2.33"
 log = "0.4"
+serde = "1.0"
 serde_json = "1.0"
 chrono = "0.4"
 bodyfile = "0.1"
