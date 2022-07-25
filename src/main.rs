@@ -1,53 +1,34 @@
-use clap::{App, Arg};
+use clap::Parser;
 use evtx::{EvtxParser, SerializedEvtxRecord};
 use serde::Serialize;
 use serde_json::{Value, json};
+use simplelog::{TermLogger, Config, TerminalMode, ColorChoice};
 use std::{path::PathBuf, collections::HashMap};
 use bodyfile::Bodyfile3Line;
 use anyhow::{Result, anyhow};
 use indicatif::{ProgressBar, ProgressStyle};
 
-use log;
-use std::io::Write;
+#[derive(Parser, Clone)]
+#[clap(author, version, about, long_about = None)]
+struct Cli {
+    /// names of the evtx files
+    evtx_files: Vec<String>,
 
-fn main() {
-    let log_level = if cfg!(debug_assertions) {
-        log::LevelFilter::Warn
-    } else {
-        log::LevelFilter::Warn
-    };
-    env_logger::Builder::new()
-        .format(|buf, record| {
-            writeln!(
-                buf,
-                "{}:{} {} [{}] - {}",
-                record.file().unwrap_or("unknown"),
-                record.line().unwrap_or(0),
-                chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
-                record.level(),
-                record.args()
-            )
-        })
-        .filter(None, log_level)
-        .init();
-        
-    let app = App::new(env!("CARGO_PKG_NAME"))
-        .version(env!("CARGO_PKG_VERSION"))
-        .author(env!("CARGO_PKG_AUTHORS"))
-        .about(env!("CARGO_PKG_DESCRIPTION"))
-        .arg(
-            Arg::with_name("EVTXFILES")
-                .help("names of the evtx files")
-                .required(true)
-                .multiple(true)
-                .min_values(1)
-                .takes_value(true),
-        );
+    #[clap(flatten)]
+    verbose: clap_verbosity_flag::Verbosity,
+}
 
-    let matches = app.get_matches();
-    let files: Vec<_> = matches.values_of("EVTXFILES").unwrap().collect();
+fn main() -> Result<()> {
+    let cli = Cli::parse();
     
-    for file in files {
+    TermLogger::init(
+        cli.verbose.log_level_filter(),
+        Config::default(),
+        TerminalMode::Stderr,
+        ColorChoice::Auto,
+    )?;
+        
+    for file in cli.evtx_files.iter() {
         let fp = PathBuf::from(file);
         let count = match EvtxParser::from_path(&fp) {
             Err(why) => {
@@ -87,6 +68,8 @@ fn main() {
             }
         }
     }
+
+    Ok(())
 }
 #[derive(Serialize)]
 struct BfData<'a> {
@@ -131,15 +114,12 @@ impl<'a> BfData<'a> {
                                                 .and_then(|c|c.get("ActivityId"));
         
         let mut custom_data = HashMap::new();
-        match event {
-            Value::Object(contents) => {
-                for (key, value) in contents.iter() {
-                    if key != "System" && key != "#attributes" {
-                        custom_data.insert(key, value);
-                    }
+        if let Value::Object(contents) = event {
+            for (key, value) in contents.iter() {
+                if key != "System" && key != "#attributes" {
+                    custom_data.insert(key, value);
                 }
             }
-            _ => ()
         }
         Ok(Self {
             event_record_id,
