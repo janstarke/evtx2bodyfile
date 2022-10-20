@@ -1,4 +1,5 @@
 use clap::Parser;
+use es4forensics::objects::{WindowsEvent, WindowsEventBuilder};
 use evtx::{EvtxParser, SerializedEvtxRecord};
 use serde::Serialize;
 use serde_json::{Value, json};
@@ -6,13 +7,17 @@ use simplelog::{TermLogger, Config, TerminalMode, ColorChoice};
 use std::{path::PathBuf, collections::HashMap};
 use bodyfile::Bodyfile3Line;
 use anyhow::{Result, anyhow};
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::{ProgressBar, ProgressStyle, ProgressDrawTarget};
 
 #[derive(Parser, Clone)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
     /// names of the evtx files
     evtx_files: Vec<String>,
+
+    /// output json for elasticsearch instead of bodyfile
+    #[clap(short('J'), long("json"))]
+    json_output: bool,
 
     #[clap(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
@@ -43,11 +48,12 @@ fn main() -> Result<()> {
         match EvtxParser::from_path(&fp) {
             Ok(mut parser) => {
                 let bar = ProgressBar::new(count as u64);
-                bar.set_draw_delta(100);
+                let target = ProgressDrawTarget::stderr_with_hz(10);
+                bar.set_draw_target(target);
                 bar.set_message(filename);
 
                 let progress_style = ProgressStyle::default_bar()
-                        .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>9}/{len:9}({percent}%) {msg}")
+                        .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>9}/{len:9}({percent}%) {msg}")?
                         .progress_chars("##-");
                 bar.set_style(progress_style);
 
@@ -138,4 +144,21 @@ fn record_to_mactime(record: SerializedEvtxRecord<Value>) -> Result<String> {
         .with_mtime(record.timestamp.timestamp())
         .with_owned_name(json!(bf_data).to_string());
     Ok(bf_line.to_string())
+}
+
+fn record_to_json(record: SerializedEvtxRecord<Value>) -> Result<WindowsEvent> {
+    let bf_data = BfData::from(record.event_record_id, &record.data)?;
+    let event_id = match bf_data.event_id.as_u64() {
+        Some(id) => id,
+        None => return Err(anyhow!("event_id has no valid value"))
+    };
+    let event_builder = WindowsEventBuilder::default()
+        .with_event_record_id(record.event_record_id)
+        .with_timestamp(record.timestamp)
+        .with_event_id(event_id);
+    
+    match event_builder.build() {
+        Ok(e) => Ok(e),
+        Err(why) => Err(anyhow!(why))
+    }
 }
