@@ -1,6 +1,6 @@
 [package]
 name = "evtx2bodyfile"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Jan Starke <jan.starke@t-systems.com>"]
 edition = "2021"
 license = "GPL-3.0"
