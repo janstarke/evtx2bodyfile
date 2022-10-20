@@ -8,5 +8,5 @@ Parses a lot of evtx files and prints a bodyfile
 evtx2bodyfile Security.evtx >Security.bodyfile
 
 # create a complete timeline
-evtx2bodyfile *.evtx | mactime -d -b >evtx_timeline.csv
+evtx2bodyfile *.evtx | mactime2 -d -b >evtx_timeline.csv
 ```
