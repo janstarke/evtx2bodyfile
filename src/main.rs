@@ -5,6 +5,7 @@ use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
 mod bf_data;
 mod evtx2bodyfile_app;
+mod evtx_file;
 #[macro_use]
 mod macros;
 
