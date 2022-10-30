@@ -17,6 +17,8 @@ pub(crate) struct BfData<'a> {
     timestamp: DateTime<Utc>,
     #[getset(get)]
     event_id: &'a Value,
+    level: &'a Value,
+    computer: &'a Value,
     provider_name: &'a Value,
     channel_name: &'a Value,
     activity_id: Option<&'a Value>,
@@ -83,6 +85,8 @@ impl<'a> TryFrom<&'a SerializedEvtxRecord<Value>> for BfData<'a> {
             }
         };
 
+        let level = from_json!(system, "Level");
+        let computer = from_json!(system, "Computer");
         let provider_name = from_json!(system, "Provider", "#attributes", "Name");
         let channel_name = from_json!(system, "Channel");
 
@@ -104,6 +108,8 @@ impl<'a> TryFrom<&'a SerializedEvtxRecord<Value>> for BfData<'a> {
             event_record_id: record.event_record_id,
             timestamp: record.timestamp,
             event_id,
+            level,
+            computer,
             provider_name,
             channel_name,
             activity_id,
@@ -125,6 +131,8 @@ impl<'a> TryFrom<&BfData<'a>> for WindowsEvent<'a> {
             bfdata.event_record_id,
             bfdata.timestamp,
             event_id,
+            bfdata.level.try_into()?,
+            bfdata.computer,
             bfdata.provider_name,
             bfdata.channel_name,
             bfdata.activity_id,
