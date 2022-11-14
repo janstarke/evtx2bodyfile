@@ -1,6 +1,6 @@
 [package]
 name = "evtx2bodyfile"
-version = "1.1.0"
+version = "1.2.0"
 authors = ["Jan Starke <jan.starke@t-systems.com>"]
 edition = "2021"
 license = "GPL-3.0"
@@ -24,5 +24,5 @@ simplelog = "0.12"
 getset = "0.1"
 ouroboros = "0.15"
 
-es4forensics = {version = ">=0.3" }
-# es4forensics = {version = "0", path="../elastic4forensics"}
+es4forensics = {version = ">=0.5", default-features=false }
+#es4forensics = {version = "0", path="../elastic4forensics", default-features=false}

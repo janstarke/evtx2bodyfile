@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::{anyhow, bail, Result};
 use bodyfile::Bodyfile3Line;
 use chrono::{DateTime, Utc};
-use es4forensics::objects::WindowsEvent;
+use es4forensics::{objects::WindowsEvent, TimelineObject};
 use evtx::SerializedEvtxRecord;
 use getset::{Getters, Setters};
 use serde::Serialize;
@@ -40,13 +40,11 @@ impl<'a> BfData<'a> {
 
     pub(crate) fn try_into_json(&self) -> Result<String> {
         let event: WindowsEvent = self.try_into()?;
-        match event.documents().next() {
-            None => bail!("missing value for this record"),
-            Some((_ts, value)) => match serde_json::to_string(&value) {
-                Ok(s) => Ok(s),
-                Err(why) => Err(anyhow!(why)),
-            },
+        let values: Vec<Value> = event.into_values().collect();
+        if values.len() != 1 {
+            bail!("this event resolved to an invalid number of JSON documents");
         }
+        serde_json::to_string(&values[0]).map_err(|why| anyhow!(why))
     }
 }
 
