@@ -24,19 +24,22 @@ pub(crate) struct Evtx2BodyfileApp {
 impl Evtx2BodyfileApp {
     pub(crate) fn handle_evtx_files(&self) -> Result<()> {
         for file in self.evtx_files.iter() {
-            self.handle_evtx_file((&file[..]).try_into()?)?;
+            self.handle_evtx_file((&file[..]).try_into()?);
         }
         Ok(())
     }
 
-    fn handle_evtx_file(&self, evtx_file: EvtxFile) -> Result<()> {       
-        let bar = evtx_file.create_progress_bar()?;
+    fn handle_evtx_file(&self, evtx_file: EvtxFile) {       
+        let bar = evtx_file.create_progress_bar().unwrap();
         for value in evtx_file.into_iter() {
-            self.print_record(&value)?;
+            if let Err(why) = self.print_record(&value) {
+                log::error!("Error while reading record: {why}");
+                bar.finish_and_clear();
+                return;
+            }
             bar.inc(1);
         }
         bar.finish_and_clear();
-        Ok(())
     }
 
     fn print_record(&self, record: &SerializedEvtxRecord<Value>) -> Result<()> {
