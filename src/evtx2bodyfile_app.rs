@@ -16,7 +16,7 @@ pub(crate) struct Evtx2BodyfileApp {
     #[clap(short('J'), long("json"))]
     json_output: bool,
 
-    /// failed upon read error
+    /// fail upon read error
     #[clap(short('S'), long("strict"))]
     strict: bool,
 
